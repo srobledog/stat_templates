@@ -1,0 +1,149 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Creating the environment
+
+```{r}
+library(tidyverse)
+library(lavaan)
+```
+
+Note: please check this course
+
+https://app.datacamp.com/learn/courses/survey-and-measurement-development-in-r 
+https://s3.amazonaws.com/assets.datacamp.com/production/course_17043/slides/chapter3.pdf 
+
+
+# Loading data
+
+```{r}
+mlm_ent <- 
+  read_csv("https://docs.google.com/spreadsheets/d/1b-bKoYI2jpMnTe2ae1rMaQuCrn3IadFq5MEtiwZwAEE/export?format=csv&gid=1178976425") |> 
+  select(Q16, Q17, Q18, # tie strength
+         Q19, Q20, Q21, # Satisfaction
+         Q22, Q23, # Monetary Incentive
+         Q24, Q25, Q26, Q28) # Recommendation
+  
+```
+
+# Exploratory Factor Analysis (EFA)
+
+Source:
+
+https://play.google.com/books/reader?id=MkbHCgAAAEAJ&pg=GBS.PA256.w.0.0.0.3_61
+
+# Data tidying
+
+```{r}
+mlm_ent_sc <- mlm_ent
+mlm_ent_sc <- scale(mlm_ent)
+summary(mlm_ent_sc)
+```
+
+
+## Finding an EFA solution
+
+```{r}
+eigen(cor(mlm_ent_sc))
+```
+
+```{r}
+factanal(mlm_ent_sc, factors = 4)
+```
+
+Factor 1: Satisfaction (Q19, Q20, Q21)
+Factor 2: Recommendation (Q24, Q26, Q25, Q28) 
+Factor 3: Tie Strength (Q16, Q17, Q18)
+Factor 4: Monetary Incentives (Q22, Q23)
+
+With oblimin rotation
+
+```{r}
+(mlm_ent_fa_ob <- factanal(mlm_ent_sc, factors = 4, rotation = "promax"))
+```
+
+Path visualization
+
+```{r}
+library(semPlot)
+semPaths(mlm_ent_fa_ob, 
+         what = "est", 
+         residuals = FALSE, 
+         cut = 0.3, 
+         posCol = c("white", "darkgreen"), 
+         negCol = c("white", "red"), 
+         edge.label.cex = 0.75, 
+         nCharNodes = 7)
+```
+Loadings < 0.3 are excluded. 
+
+# Confirmatory Factor Analysis 
+
+## Model 
+
+```{r}
+mlm_model <- 
+              "Satisfaction =~ Q19 + Q20 + Q21
+               Monetary_incentive =~ Q22 + Q23
+               Tie_strenght =~ Q16 + Q17 + Q18
+               Recommendation =~ Q24 + Q28 + Q25 + Q26 
+               Monetary_incentive ~ Satisfaction 
+               Tie_strenght ~ Satisfaction
+               Recommendation ~ Satisfaction + Tie_strenght + Monetary_incentive"
+```
+
+```{r}
+library(lavaan)
+library(semTools)
+library(semPlot)
+```
+
+# Model Estimation
+
+```{r}
+mlm_fit <- cfa(mlm_model, data = mlm_ent)
+summary(mlm_fit, fit.measures = TRUE)
+```
+
+The four hierarchical model fits the data well. Fit indices are strong (CFI = 0.956) residuals are low (0.091). All laten variables are significant (p-valor < 0.05). are similiar to one another in magnitude (ranging 0.847 - 1.363) 
+
+Ploting the model 
+
+```{r}
+library(semPlot)
+semPaths(mlm_fit, what = "est", fade = FALSE, residuals = FALSE, edge.label.cex = 0.75)
+```
+
+```{r}
+reliability(mlm_fit)
+```
+
+```{r}
+inspect(mlm_fit, what = "std")$lambda
+```
+
+## Correlation matrix 
+
+```{r}
+cov2cor(inspect(mlm_fit, what = "est")$psi)
+```
+
+```{r}
+round(cor(mlm_ent), digits = 2)
+```
+
+# Tables
+
+## Table 1 
+
+Descriptive statistics 
+
+```{r}
+
+```
+
+
+
+## 
