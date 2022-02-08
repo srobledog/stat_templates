@@ -85,10 +85,12 @@ Loadings < 0.3 are excluded.
 
 ```{r}
 mlm_model <- 
-              "Satisfaction =~ Q19 + Q20 + Q21
+              "# Measurement Model
+               Satisfaction =~ Q19 + Q20 + Q21
                Monetary_incentive =~ Q22 + Q23
                Tie_strenght =~ Q16 + Q17 + Q18
                Recommendation =~ Q24 + Q28 + Q25 + Q26 
+               # Regressions
                Monetary_incentive ~ Satisfaction 
                Tie_strenght ~ Satisfaction
                Recommendation ~ Satisfaction + Tie_strenght + Monetary_incentive"
@@ -107,13 +109,17 @@ mlm_fit <- cfa(mlm_model, data = mlm_ent)
 summary(mlm_fit, fit.measures = TRUE)
 ```
 
-The four hierarchical model fits the data well. Fit indices are strong (CFI = 0.956) residuals are low (0.091). All laten variables are significant (p-valor < 0.05). are similiar to one another in magnitude (ranging 0.847 - 1.363) 
+The four hierarchical model fits the data well. Fit indices are strong (CFI = 0.956) residuals are low (RMSEA = 0.091). All laten variables are significant (p-valor < 0.05). are similiar to one another in magnitude (ranging 0.847 - 1.363) 
 
 Ploting the model 
 
 ```{r}
 library(semPlot)
-semPaths(mlm_fit, what = "est", fade = FALSE, residuals = FALSE, edge.label.cex = 0.75)
+semPaths(mlm_fit, 
+         what = "est", 
+         fade = FALSE, 
+         residuals = FALSE, 
+         edge.label.cex = 0.75)
 ```
 
 ```{r}
