@@ -73,12 +73,14 @@ paths(from = c("CUSA"), to = c("CUSL")))
 ### Estimar el modelo
 
 ```{r}
-corp_rep_pls_model <- estimate_pls(
-data = corp_rep_data,
-measurement_model = corp_rep_mm,
-structural_model = corp_rep_sm,
-missing = mean_replacement,
-missing_value = "-99")
+corp_rep_pls_model <-
+  estimate_pls(
+    data = corp_rep_data,
+    measurement_model = corp_rep_mm,
+    structural_model = corp_rep_sm,
+    missing = mean_replacement,
+    missing_value = "-99"
+  )
 ```
 
 ### Resumiendo los resultados del modelo
