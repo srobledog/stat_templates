@@ -1,0 +1,146 @@
+---
+title: "template_PLS_SEM"
+author: "Sebastian Robledo"
+date: "2/11/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Source: <https://link.springer.com/book/10.1007/978-3-030-80519-7>
+
+# Capítulo 4 - Evaluación de Modelos de Medida Reflectiva
+
+Paso 1 - Evaluar la confiabilidad del indicador
+
+Paso 2 - Evaluar la confiabilidad en la consistencia interna
+
+Paso 3 - Evaluar la validez convergente
+
+Paso 4 - Evaluar la validez discriminante
+
+## 4.1 Confianbilidad del indicador
+
+El primer paso para evaluar un modelo reflectivo involucra examinar cuanto cada varianza del indicador explica su constructo, lo cual se llama **confiabilidad del indicador.** Cargas del indicador por encima de 0.708 son recomendadas porque indican que el constructo explica más del 50% la varianza del indicador.
+
+## 4.2 Confiabilidad de la consistencia interna
+
+La confiabilidad de la consistencia interna es la medida en que los indicadores que miden el mismo constructo están asociados entre sí.
+
+Esto se mide con la **confiabilidad compuesta** (rho), valores entre 0.60 y 0.70 son consideraos aceptables para una investigación exploratoria, miestras que valores entre 0.70 y 0.90 son considerados satisfactoriamente buenos. Pero valores mayores a 0.90 son problemáticos por que indican que son redundatnes; por lo tanto, reducen la validez del constructo.
+
+El Alpha de Cronbach es otra medida de la confiabilidad de la consistencia interna.
+
+El coeficiente de confiabilidad es otro (rhoa).
+
+## 4.3 Validez Convergente
+
+La validez convergente es la medida en que un constructo converge para explicar la varianza de sus indicadores. El indicador para esta evaluación es la varianza media extraida (AVE). Lo minimo aceptable es 0.50 o mayor.
+
+## 4.5 Validez Discriminante
+
+En esta parte se mide la medida en que un constructo es distinto empiricamente de otros en el modelo. Para medirlo se utiliza AVE pero ha presentado algunos problemas. Se recomienda la relación heterorrasgo-monorrasgo (HTMT) de correlaciones.
+
+Problemas en la validez discriminante se presentan cuando los valores HTMT son muy altos, se pueden considerar valores mayores a 0.85 y revisar conel bootstraping
+
+## Caso de estudio
+
+```{r}
+library(seminr)
+corp_rep_data <- seminr::corp_rep_data
+```
+
+### Crear el modelo de medida
+
+```{r}
+corp_rep_mm <- constructs(
+composite("COMP", multi_items("comp_", 1:3)),
+composite("LIKE", multi_items("like_", 1:3)),
+composite("CUSA", single_item("cusa")),
+composite("CUSL", multi_items("cusl_", 1:3)))
+```
+
+### Crear el modelo estructural
+
+```{r}
+corp_rep_sm <- relationships(
+paths(from = c("COMP", "LIKE"), to = c("CUSA", "CUSL")),
+paths(from = c("CUSA"), to = c("CUSL")))
+```
+
+### Estimar el modelo
+
+```{r}
+corp_rep_pls_model <- estimate_pls(
+data = corp_rep_data,
+measurement_model = corp_rep_mm,
+structural_model = corp_rep_sm,
+missing = mean_replacement,
+missing_value = "-99")
+```
+
+### Resumiendo los resultados del modelo
+
+```{r}
+summary_corp_rep <- summary(corp_rep_pls_model)
+```
+
+Revisamos si el algoritmo convergió
+
+```{r}
+# Iterations to converge
+summary_corp_rep$iterations
+```
+
+Inspecionamos las cargas outer\*
+
+```{r}
+summary_corp_rep$loadings
+```
+
+Inspecionamos la confiabilidad del indicador
+
+```{r}
+summary_corp_rep$loadings^2
+```
+
+Inspeccionamos la consistencia interna y la confiabilidad
+
+```{r}
+summary_corp_rep$reliability
+```
+
+En una gráfica
+
+```{r}
+plot(summary_corp_rep$reliability)
+```
+
+Tabla de los criterios FL (Fornell-Larcker)
+
+```{r}
+summary_corp_rep$validity$fl_criteria
+```
+
+HTMT ratio
+
+All the results are lower than 0.85
+
+```{r}
+summary_corp_rep$validity$htmt
+```
+
+Modelo bootstrap
+
+```{r}
+boot_corp_rep <- bootstrap_model(seminr_model = corp_rep_pls_model, nboot = 1000)
+sum_boot_corp_rep <- summary(boot_corp_rep, alpha = 0.10)
+```
+
+Extrayendo el bootstrapped
+
+```{r}
+sum_boot_corp_rep$bootstrapped_HTMT
+```
