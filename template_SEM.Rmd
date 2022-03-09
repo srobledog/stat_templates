@@ -142,14 +142,18 @@ round(cor(mlm_ent), digits = 2)
 
 # Tables
 
-## Table 1 
-
-Descriptive statistics 
+## Table 1 Descriptive statistics 
 
 ```{r}
 
 ```
 
 
+## Table 2 Correlation Matrix
 
-## 
+https://www.researchgate.net/post/How-to-extract-correlation-matrix-of-latent-variables-in-lavaan-hierarchical-CFA-Why-does-corlavPredictfit-differ-from-lavInspectfit-corlv
+
+```{r}
+lavInspect(mlm_fit, "cor.lv")
+```
+
