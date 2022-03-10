@@ -34,6 +34,10 @@ Source:
 
 https://play.google.com/books/reader?id=MkbHCgAAAEAJ&pg=GBS.PA256.w.0.0.0.3_61
 
+
+https://s3.amazonaws.com/assets.datacamp.com/production/course_17043/slides/chapter2.pdf
+
+
 # Data tidying
 
 ```{r}
@@ -63,6 +67,12 @@ With oblimin rotation
 ```{r}
 (mlm_ent_fa_ob <- factanal(mlm_ent_sc, factors = 4, rotation = "promax"))
 ```
+
+< 0.39 pobre
+.4 - .49 Justo
+.5 - .59 Bueno
+.6 - .69 Muy bueno 
+.7 + Excelente
 
 Path visualization
 
@@ -109,7 +119,7 @@ mlm_fit <- cfa(mlm_model, data = mlm_ent)
 summary(mlm_fit, fit.measures = TRUE)
 ```
 
-The four hierarchical model fits the data well. Fit indices are strong (CFI = 0.956) residuals are low (RMSEA = 0.091). All laten variables are significant (p-valor < 0.05). are similiar to one another in magnitude (ranging 0.847 - 1.363) 
+The four hierarchical model fits the data well. Fit indices are strong (CFI = 0.956) residuals are low (RMSEA = 0.091). All latent variables are significant (p-valor < 0.05). are similiar to one another in magnitude (ranging 0.847 - 1.363) 
 
 Ploting the model 
 
@@ -122,6 +132,10 @@ semPaths(mlm_fit,
          edge.label.cex = 0.75)
 ```
 
+               Monetary_incentive ~ Satisfaction 
+               Tie_strenght ~ Satisfaction
+               Recommendation ~ Satisfaction + Tie_strenght + Monetary_incentive"
+
 ```{r}
 reliability(mlm_fit)
 ```
@@ -133,12 +147,74 @@ inspect(mlm_fit, what = "std")$lambda
 ## Correlation matrix 
 
 ```{r}
-cov2cor(inspect(mlm_fit, what = "est")$psi)
+TS <- mlm_ent |> 
+  rowwise() |> 
+  mutate(TS = mean(Q16, Q17, Q18))
+
+SAT <- mlm_ent |> 
+  rowwise() |> 
+  mutate(SAT = mean(Q19, Q20, Q21))
+
+MI <- mlm_ent |> 
+  rowwise() |> 
+  mutate(MI = mean(Q22, Q23))
+
+REC <- mlm_ent |> 
+  rowwise() |> 
+  mutate(REC = mean(Q24, Q25, Q26, Q28))
+
+mlm_latent <- 
+  tibble(TS = TS$TS,
+         SAT = SAT$SAT,
+         MI = MI$MI,
+         REC = REC$REC)
+
+rcorr(as.matrix(mlm_latent))
 ```
+
+
+Latent variables
+
+https://www.youtube.com/watch?v=eLDrF3vwyXc
+
+```{r}
+RE <- nataliaSimData |> 
+  rowwise() |> 
+  mutate(RE = mean(i1, i2, i3)) 
+
+DE <- nataliaSimData |> rowwise() |> mutate(DE = mean(i4, i5, i6))
+CD <- nataliaSimData |> rowwise() |> mutate(CD = mean(i7, i8, i9))
+
+natalia_latent <- 
+  tibble(RE = RE$RE,
+         DE = DE$DE,
+         CD = CD$CD)
+
+rcorr(as.matrix(natalia_latent))
+```
+
+
+```{r}
+lavInspect(mlm_fit, "cor.lv")
+```
+
+## Covariance matrix
+
+```{r}
+fitted(sem(mlm_fit))
+```
+
 
 ```{r}
 round(cor(mlm_ent), digits = 2)
 ```
+
+With p-values
+
+```{r}
+rcorr(as.matrix(mlm_ent))
+```
+
 
 # Tables
 
@@ -156,4 +232,5 @@ https://www.researchgate.net/post/How-to-extract-correlation-matrix-of-latent-va
 ```{r}
 lavInspect(mlm_fit, "cor.lv")
 ```
+
 
