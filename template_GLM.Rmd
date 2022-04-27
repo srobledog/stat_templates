@@ -1,0 +1,50 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Libraries 
+
+```{r}
+library(tidyverse)
+```
+
+
+# Loading data 
+
+```{r}
+datos_john <- 
+  read_csv("https://docs.google.com/spreadsheets/d/1iBXy2PTXTqXk3Y0JxOPzyCGooVuwJaaeGXCGk-bEqpY/export?format=csv&gid=877481831")
+```
+
+
+```{r}
+datos_john |> 
+  ggplot(aes(x = IC, y = RE)) +
+  geom_jitter(width = 0, height = 0.05, alpha = 0.5)
+```
+
+```{r}
+datos_john |> 
+  mutate(is_RE = ifelse(RE == "si", 1, 0)) |> 
+  ggplot(aes(x = IC, y = is_RE)) +
+  geom_jitter(width = 0, height = 0.05, alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+datos_john_1 <- 
+  datos_john |> 
+  mutate(is_RE = ifelse(RE == "si", 1, 0))
+
+  glm(is_RE ~ IC, family = "binomial", data = datos_john_1)
+```
+```{r}
+datos_john_1 |> 
+  ggplot(aes(x = IC, y = is_RE)) +
+  geom_jitter(width = 0, height = 0.05, alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(method = "glm", se = FALSE, color = "red",
+              method.args = list(family = "binomial"))
+```
+https://campus.datacamp.com/courses/multiple-and-logistic-regression-in-r/logistic-regression-4?ex=8
